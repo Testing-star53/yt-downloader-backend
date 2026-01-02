@@ -4,21 +4,26 @@ import os
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return "YouTube Downloader Backend Running"
+
 @app.route("/download")
 def download():
     url = request.args.get("url")
     if not url:
-        return "No URL", 400
+        return "YouTube URL missing", 400
 
     ydl_opts = {
-        'format': 'best',
-        'outtmpl': 'video.%(ext)s'
+        "format": "best",
+        "outtmpl": "video.%(ext)s"
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+        info = ydl.extract_info(url)
+        filename = ydl.prepare_filename(info)
 
-    file = [f for f in os.listdir() if f.startswith("video.")][0]
-    return send_file(file, as_attachment=True)
+    return send_file(filename, as_attachment=True)
 
-app.run(host="0.0.0.0", port=10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
